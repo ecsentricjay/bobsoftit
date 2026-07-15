@@ -1,0 +1,6 @@
+{
+  "name": "Bobsoft Integrated Services",
+  "description": "Professional campus-based IT training institute located at Ignatius Ajuru University of Education (IAUE), Port Harcourt, Rivers State, Nigeria.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

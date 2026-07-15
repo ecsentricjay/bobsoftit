@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%">
+  <!-- Dark Background -->
+  <rect width="600" height="400" fill="#1A1A1A" rx="12"/>
+  
+  <!-- Glowing effects -->
+  <defs>
+    <radialGradient id="goldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#C9931A" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#C9931A" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="screenGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  
+  <circle cx="300" cy="200" r="180" fill="url(#goldGlow)" />
+  <circle cx="300" cy="280" r="120" fill="url(#screenGlow)" />
+
+  <!-- Code background pattern -->
+  <g fill="#2D2D2D" font-family="'Space Grotesk', monospace" font-size="10" opacity="0.3">
+    <text x="30" y="50">&lt;div class="bobsoft"&gt;</text>
+    <text x="50" y="70">const skills = ["Web", "AI", "Data"];</text>
+    <text x="50" y="90">skills.forEach(skill =&gt; build(skill));</text>
+    <text x="30" y="110">&lt;/div&gt;</text>
+    <text x="450" y="310">npm run deploy</text>
+    <text x="450" y="330">STATUS: SUCCESS</text>
+  </g>
+
+  <!-- Connection Lines / Network nodes -->
+  <g stroke="#2D2D2D" stroke-width="1.5" opacity="0.5">
+    <line x1="300" y1="200" x2="150" y2="120" />
+    <line x1="300" y1="200" x2="480" y2="120" />
+    <line x1="300" y1="200" x2="130" y2="250" />
+    <line x1="300" y1="200" x2="470" y2="260" />
+    <line x1="300" y1="200" x2="300" y2="80" />
+  </g>
+
+  <!-- Laptop on desk -->
+  <rect x="250" y="270" width="100" height="6" rx="3" fill="#2D2D2D" />
+  <path d="M 230 285 L 370 285 L 380 295 L 220 295 Z" fill="#2D2D2D" />
+  <rect x="255" y="215" width="90" height="55" rx="4" fill="#111111" stroke="#3D3D3D" stroke-width="2" />
+  <rect x="260" y="220" width="80" height="45" rx="2" fill="#0F172A" />
+  <path d="M 270 240 L 278 245 L 270 250" stroke="#3B82F6" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <rect x="282" y="245" width="10" height="2" fill="#3B82F6" />
+  
+  <!-- Desk Base line -->
+  <line x1="80" y1="295" x2="520" y2="295" stroke="#C9931A" stroke-width="3" stroke-linecap="round" />
+
+  <!-- Student Silhouette working -->
+  <g fill="#E8B040">
+    <!-- Body/Shoulders -->
+    <path d="M 260 310 C 260 270 340 270 340 310 Z" opacity="0.9"/>
+    <!-- Head -->
+    <circle cx="300" cy="245" r="20" />
+  </g>
+  <g fill="#1A1A1A">
+    <!-- Headphones -->
+    <path d="M 276 245 A 24 24 0 0 1 324 245" fill="none" stroke="#C9931A" stroke-width="6" />
+    <rect x="273" y="240" width="6" height="12" rx="2" fill="#C9931A" />
+    <rect x="321" y="240" width="6" height="12" rx="2" fill="#C9931A" />
+  </g>
+
+  <!-- Floating Skill Badges -->
+  <!-- 1. Web Dev (Blue) -->
+  <g transform="translate(90, 100)">
+    <rect width="115" height="36" rx="18" fill="#1E1E2F" stroke="#3B82F6" stroke-width="2" />
+    <circle cx="20" cy="18" r="8" fill="#3B82F6" />
+    <text x="20" y="21" font-family="'Space Grotesk', sans-serif" font-size="10" fill="#1E1E2F" font-weight="bold" text-anchor="middle">W</text>
+    <text x="68" y="22" font-family="'Space Grotesk', sans-serif" font-size="12" fill="#60A5FA" font-weight="bold" text-anchor="middle">Web Dev</text>
+  </g>
+
+  <!-- 2. Analytics (Green) -->
+  <g transform="translate(415, 100)">
+    <rect width="115" height="36" rx="18" fill="#1A2E26" stroke="#10B981" stroke-width="2" />
+    <circle cx="20" cy="18" r="8" fill="#10B981" />
+    <text x="20" y="21" font-family="'Space Grotesk', sans-serif" font-size="10" fill="#1A2E26" font-weight="bold" text-anchor="middle">A</text>
+    <text x="68" y="22" font-family="'Space Grotesk', sans-serif" font-size="12" fill="#34D399" font-weight="bold" text-anchor="middle">Analytics</text>
+  </g>
+
+  <!-- 3. AI Skills (Gold) -->
+  <g transform="translate(235, 40)">
+    <rect width="130" height="40" rx="20" fill="#2D2413" stroke="#C9931A" stroke-width="2" />
+    <circle cx="22" cy="20" r="10" fill="#C9931A" />
+    <text x="22" y="24" font-family="'Space Grotesk', sans-serif" font-size="12" fill="#2D2413" font-weight="bold" text-anchor="middle">AI</text>
+    <text x="76" y="24" font-family="'Space Grotesk', sans-serif" font-size="13" fill="#FDF3DC" font-weight="bold" text-anchor="middle">AI Skills</text>
+  </g>
+
+  <!-- 4. Security (Red) -->
+  <g transform="translate(70, 230)">
+    <rect width="115" height="36" rx="18" fill="#2D1A1A" stroke="#EF4444" stroke-width="2" />
+    <circle cx="20" cy="18" r="8" fill="#EF4444" />
+    <text x="20" y="21" font-family="'Space Grotesk', sans-serif" font-size="10" fill="#2D1A1A" font-weight="bold" text-anchor="middle">S</text>
+    <text x="68" y="22" font-family="'Space Grotesk', sans-serif" font-size="12" fill="#F87171" font-weight="bold" text-anchor="middle">Security</text>
+  </g>
+
+  <!-- 5. Mobile App (Purple) -->
+  <g transform="translate(415, 230)">
+    <rect width="115" height="36" rx="18" fill="#241A2E" stroke="#A855F7" stroke-width="2" />
+    <circle cx="20" cy="18" r="8" fill="#A855F7" />
+    <text x="20" y="21" font-family="'Space Grotesk', sans-serif" font-size="10" fill="#241A2E" font-weight="bold" text-anchor="middle">M</text>
+    <text x="68" y="22" font-family="'Space Grotesk', sans-serif" font-size="11" fill="#C084FC" font-weight="bold" text-anchor="middle">Mobile App</text>
+  </g>
+</svg>
