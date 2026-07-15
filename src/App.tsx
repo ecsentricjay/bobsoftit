@@ -76,6 +76,7 @@ export default function App() {
     agreeToTerms: false
   });
   
+  const [enrollmentType, setEnrollmentType] = useState<'free_whatsapp' | 'pay_online'>('free_whatsapp');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [enrollmentSuccess, setEnrollmentSuccess] = useState<{
     reference: string;
@@ -147,7 +148,25 @@ export default function App() {
     }
   };
 
-  // Paystack Integration Trigger
+  // Helper to construct WhatsApp message and link
+  const getEnrollmentWhatsAppUrl = () => {
+    const regCode = enrollmentSuccess?.enrollmentId || 'PENDING';
+    const ref = enrollmentSuccess?.reference || '';
+    const isFree = enrollmentType === 'free_whatsapp';
+    
+    let text = `Hello Bobsoft,\n\nI just enrolled for a course! Here are my registration details:\n\n*Full Name:* ${formState.fullName}\n*Phone:* ${formState.phone}\n*Email:* ${formState.email}\n*Specialization:* ${selectedTrackData.title}\n*Learning Mode:* ${formState.studyMode === 'IN_PERSON' ? 'Physical (IAUE Campus)' : 'Online Live'}\n*Reg Code:* ${regCode}\n\n`;
+    
+    if (isFree) {
+      text += `*Payment Mode:* Free Enrollment (WhatsApp Verification)`;
+    } else {
+      text += `*Payment Mode:* Online Payment (Paystack)\n*Amount:* ₦${pricing.today.toLocaleString()}\n*Ref:* ${ref}`;
+    }
+    
+    text += `\n\nPlease confirm my enrollment. Thank you!`;
+    return `https://wa.me/2349095203318?text=${encodeURIComponent(text)}`;
+  };
+
+  // Paystack Integration or Free WhatsApp Enrollment Trigger
   const handleEnrollAndPay = (e: FormEvent) => {
     e.preventDefault();
     
@@ -163,68 +182,90 @@ export default function App() {
 
     setIsSubmitting(true);
 
-    const win = window as any;
-    const paymentAmount = pricing.today; // Pay the 'today' portion of tuition (Full or installment starter)
-    const ref = 'BOBSOFT-' + Math.floor((Math.random() * 100000000) + 10000000);
+    const isFree = enrollmentType === 'free_whatsapp';
+    const ref = (isFree ? 'WA-FREE-' : 'BOBSOFT-') + Math.floor((Math.random() * 100000000) + 10000000);
+    const paymentAmount = isFree ? 0 : pricing.today;
 
-    // If Paystack is loaded in window
-    if (win.PaystackPop) {
-      try {
-        const handler = win.PaystackPop.setup({
-          key: 'pk_test_d30f40bfb7fe00995fffe7c166e4a2b950892be8', // Test Key for visual sandbox
-          email: formState.email,
-          amount: paymentAmount * 100, // in kobo
-          currency: 'NGN',
-          ref: ref,
-          metadata: {
-            custom_fields: [
-              {
-                display_name: "Full Name",
-                variable_name: "full_name",
-                value: formState.fullName
-              },
-              {
-                display_name: "Selected Track",
-                variable_name: "selected_track",
-                value: selectedTrackData.title
-              },
-              {
-                display_name: "Study Mode",
-                variable_name: "study_mode",
-                value: formState.studyMode
-              },
-              {
-                display_name: "Payment Plan",
-                variable_name: "payment_plan",
-                value: formState.paymentPlan
-              },
-              {
-                display_name: "Phone Number",
-                variable_name: "phone_number",
-                value: formState.phone
-              }
-            ]
-          },
-          callback: function(response: any) {
-            setIsSubmitting(false);
-            setEnrollmentSuccess({
-              reference: response.reference || ref,
-              enrollmentId: 'BIB-' + Math.floor((Math.random() * 90000) + 10000),
-              date: new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })
-            });
-          },
-          onClose: function() {
-            setIsSubmitting(false);
-          }
+    if (isFree) {
+      setTimeout(() => {
+        setIsSubmitting(false);
+        const regCode = 'BIB-' + Math.floor((Math.random() * 90000) + 10000);
+        setEnrollmentSuccess({
+          reference: ref,
+          enrollmentId: regCode,
+          date: new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })
         });
-        handler.openIframe();
-      } catch (err) {
-        console.error("Paystack load error, falling back to simulated high-fidelity secure checkout", err);
+
+        // Trigger auto WhatsApp redirect in background/new tab
+        const messageText = `Hello Bobsoft,\n\nI just enrolled for a course! Here are my registration details:\n\n*Full Name:* ${formState.fullName}\n*Phone:* ${formState.phone}\n*Email:* ${formState.email}\n*Specialization:* ${selectedTrackData.title}\n*Learning Mode:* ${formState.studyMode === 'IN_PERSON' ? 'Physical (IAUE Campus)' : 'Online Live'}\n*Reg Code:* ${regCode}\n\n*Payment Mode:* Free Enrollment (WhatsApp Verification)\n\nPlease confirm my enrollment. Thank you!`;
+        const whatsappUrl = `https://wa.me/2349095203318?text=${encodeURIComponent(messageText)}`;
+        try {
+          window.open(whatsappUrl, '_blank');
+        } catch (error) {
+          console.log("Auto WhatsApp redirect prevented:", error);
+        }
+      }, 1200);
+    } else {
+      const win = window as any;
+      // If Paystack is loaded in window
+      if (win.PaystackPop) {
+        try {
+          const handler = win.PaystackPop.setup({
+            key: 'pk_test_d30f40bfb7fe00995fffe7c166e4a2b950892be8', // Test Key for visual sandbox
+            email: formState.email,
+            amount: paymentAmount * 100, // in kobo
+            currency: 'NGN',
+            ref: ref,
+            metadata: {
+              custom_fields: [
+                {
+                  display_name: "Full Name",
+                  variable_name: "full_name",
+                  value: formState.fullName
+                },
+                {
+                  display_name: "Selected Track",
+                  variable_name: "selected_track",
+                  value: selectedTrackData.title
+                },
+                {
+                  display_name: "Study Mode",
+                  variable_name: "study_mode",
+                  value: formState.studyMode
+                },
+                {
+                  display_name: "Payment Plan",
+                  variable_name: "payment_plan",
+                  value: formState.paymentPlan
+                },
+                {
+                  display_name: "Phone Number",
+                  variable_name: "phone_number",
+                  value: formState.phone
+                }
+              ]
+            },
+            callback: function(response: any) {
+              setIsSubmitting(false);
+              setEnrollmentSuccess({
+                reference: response.reference || ref,
+                enrollmentId: 'BIB-' + Math.floor((Math.random() * 90000) + 10000),
+                date: new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })
+              });
+            },
+            onClose: function() {
+              setIsSubmitting(false);
+            }
+          });
+          handler.openIframe();
+        } catch (err) {
+          console.error("Paystack load error, falling back to simulated high-fidelity secure checkout", err);
+          triggerSimulatedCheckout(ref, paymentAmount);
+        }
+      } else {
+        // Fallback simulation in sandbox if JS SDK blocked or disconnected
         triggerSimulatedCheckout(ref, paymentAmount);
       }
-    } else {
-      // Fallback simulation in sandbox if JS SDK blocked or disconnected
-      triggerSimulatedCheckout(ref, paymentAmount);
     }
   };
 
@@ -1033,6 +1074,48 @@ export default function App() {
                   />
                 </div>
 
+                <h3 className="font-display font-bold text-xl text-[#1A1A1A] border-b border-gray-100 pb-3 pt-4 flex items-center space-x-2">
+                  <ShieldAlert className="w-5 h-5 text-[#C9931A]" />
+                  <span>3. Choose Enrollment Pathway</span>
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* WhatsApp Free option */}
+                  <button
+                    type="button"
+                    onClick={() => setEnrollmentType('free_whatsapp')}
+                    className={`p-4 rounded-xl text-left border transition-all flex flex-col justify-between h-28 ${enrollmentType === 'free_whatsapp' ? 'bg-[#1A1A1A] text-white border-[#1A1A1A] shadow-md' : 'bg-[#F7F4EF] text-gray-700 border-gray-200 hover:border-[#C9931A]'}`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className={`text-[9px] font-bold uppercase tracking-wider ${enrollmentType === 'free_whatsapp' ? 'text-[#E8B040]' : 'text-gray-500'}`}>Free Enrollment</span>
+                      <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-display font-black text-sm block">₦0.00 Free Admission</span>
+                      <span className="text-[10px] text-gray-400 mt-1 block leading-tight">Instant submit & verification via WhatsApp</span>
+                    </div>
+                  </button>
+
+                  {/* Online Payment option */}
+                  <button
+                    type="button"
+                    onClick={() => setEnrollmentType('pay_online')}
+                    className={`p-4 rounded-xl text-left border transition-all flex flex-col justify-between h-28 ${enrollmentType === 'pay_online' ? 'bg-[#1A1A1A] text-white border-[#1A1A1A] shadow-md' : 'bg-[#F7F4EF] text-gray-700 border-gray-200 hover:border-[#C9931A]'}`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className={`text-[9px] font-bold uppercase tracking-wider ${enrollmentType === 'pay_online' ? 'text-[#E8B040]' : 'text-gray-500'}`}>Direct Tuition Payment</span>
+                      <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                    </div>
+                    <div>
+                      <span className="font-display font-black text-sm block">₦{pricing.today.toLocaleString()} Pay Now</span>
+                      <span className="text-[10px] text-gray-400 mt-1 block leading-tight">Secure checkout using Paystack gateway</span>
+                    </div>
+                  </button>
+                </div>
+
                 <div className="flex items-start space-x-2 pt-2">
                   <input 
                     type="checkbox" 
@@ -1051,12 +1134,17 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full py-4 rounded-xl font-display font-bold text-center text-sm uppercase tracking-wider shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 ${isSubmitting ? 'bg-gray-400 text-gray-200 cursor-wait' : 'bg-[#C9931A] hover:bg-[#E8B040] text-black hover:scale-[1.01] active:scale-[0.99]'}`}
+                  className={`w-full py-4 rounded-xl font-display font-bold text-center text-sm uppercase tracking-wider shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 ${isSubmitting ? 'bg-gray-400 text-gray-200 cursor-wait' : enrollmentType === 'free_whatsapp' ? 'bg-green-600 hover:bg-green-700 text-white hover:scale-[1.01] active:scale-[0.99]' : 'bg-[#C9931A] hover:bg-[#E8B040] text-black hover:scale-[1.01] active:scale-[0.99]'}`}
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                      <span>Connecting with Paystack...</span>
+                      <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      <span>{enrollmentType === 'free_whatsapp' ? 'Processing Enrollment...' : 'Connecting with Paystack...'}</span>
+                    </>
+                  ) : enrollmentType === 'free_whatsapp' ? (
+                    <>
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Complete Free Enrollment via WhatsApp</span>
                     </>
                   ) : (
                     <>
@@ -1118,22 +1206,31 @@ export default function App() {
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-gray-800/80">
+                     <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-gray-800/80">
                       <div>
                         <span className="text-gray-400 text-[10px] font-bold uppercase block tracking-wider">Amount Due Today</span>
-                        <span className="text-[10px] text-gray-500 font-light leading-none">Locks seat & portal access</span>
+                        <span className="text-[10px] text-gray-500 font-light leading-none">
+                          {enrollmentType === 'free_whatsapp' ? 'Submit details for free' : 'Locks seat & portal access'}
+                        </span>
                       </div>
                       <span className="font-display font-extrabold text-[#C9931A] text-xl">
-                        ₦{pricing.today.toLocaleString()}
+                        ₦{enrollmentType === 'free_whatsapp' ? '0' : pricing.today.toLocaleString()}
                       </span>
                     </div>
 
                   </div>
 
-                  <div className="bg-green-950/20 p-3.5 rounded-xl border border-green-900/40 text-center text-[11px] text-green-400 font-light flex items-center justify-center space-x-1.5">
-                    <span>🎉</span>
-                    <span>This payment fully clears your complete tuition for this specialization!</span>
-                  </div>
+                  {enrollmentType === 'free_whatsapp' ? (
+                    <div className="bg-green-950/20 p-3.5 rounded-xl border border-green-900/40 text-center text-[11px] text-green-400 font-light flex items-center justify-center space-x-1.5">
+                      <span>✅</span>
+                      <span>You can enroll completely free! Tap submit to verify on WhatsApp.</span>
+                    </div>
+                  ) : (
+                    <div className="bg-green-950/20 p-3.5 rounded-xl border border-green-900/40 text-center text-[11px] text-green-400 font-light flex items-center justify-center space-x-1.5">
+                      <span>🎉</span>
+                      <span>This payment fully clears your complete tuition for this specialization!</span>
+                    </div>
+                  )}
 
                   {/* Barcode representation */}
                   <div className="pt-4 border-t border-gray-800/80 flex flex-col items-center justify-center space-y-2">
@@ -1146,7 +1243,9 @@ export default function App() {
                         />
                       ))}
                     </div>
-                    <span className="text-[8px] text-gray-600 font-mono tracking-widest uppercase">SECURE PAYMENT CHECKOUT</span>
+                    <span className="text-[8px] text-gray-600 font-mono tracking-widest uppercase">
+                      {enrollmentType === 'free_whatsapp' ? 'FREE REGISTRATION VERIFICATION' : 'SECURE PAYMENT CHECKOUT'}
+                    </span>
                   </div>
 
                 </div>
@@ -1155,7 +1254,9 @@ export default function App() {
                 <div className="p-4 bg-[#202020] border-t border-gray-800 text-center flex items-center justify-center space-x-2">
                   <ShieldAlert className="w-4 h-4 text-[#C9931A]" />
                   <span className="text-[10px] text-gray-400 font-light">
-                    Pay securely using Cards, Bank Transfer, USSD, or OPay on Paystack.
+                    {enrollmentType === 'free_whatsapp' 
+                      ? 'No payment card required. Your details are sent directly to 09095203318.'
+                      : 'Pay securely using Cards, Bank Transfer, USSD, or OPay on Paystack.'}
                   </span>
                 </div>
 
@@ -1196,9 +1297,13 @@ export default function App() {
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-display font-extrabold text-2xl text-[#1A1A1A]">Enrollment Confirmed!</h3>
+                <h3 className="font-display font-extrabold text-2xl text-[#1A1A1A]">
+                  {enrollmentType === 'free_whatsapp' ? 'Registration Submitted!' : 'Enrollment Confirmed!'}
+                </h3>
                 <p className="text-gray-500 font-light text-sm">
-                  Welcome to Bobsoft Integrated Services, <span className="font-bold text-[#1A1A1A]">{formState.fullName}</span>! Your slot has been secured.
+                  {enrollmentType === 'free_whatsapp' 
+                    ? 'Your free registration is ready. Please send the details via WhatsApp to confirm.'
+                    : `Welcome to Bobsoft Integrated Services, ${formState.fullName}! Your slot has been secured.`}
                 </p>
               </div>
 
@@ -1217,12 +1322,18 @@ export default function App() {
 
                 <div className="flex justify-between border-b border-gray-200 pb-2">
                   <span className="text-gray-500">Tuition Paid:</span>
-                  <span className="font-bold text-green-600">₦{pricing.today.toLocaleString()}</span>
+                  <span className="font-bold text-green-600">
+                    {enrollmentType === 'free_whatsapp' ? '₦0.00 (Free Enrollment)' : `₦${pricing.today.toLocaleString()}`}
+                  </span>
                 </div>
 
                 <div className="flex justify-between border-b border-gray-200 pb-2">
-                  <span className="text-gray-500">Paystack Transaction Ref:</span>
-                  <span className="font-mono text-gray-600">{enrollmentSuccess.reference}</span>
+                  <span className="text-gray-500">
+                    {enrollmentType === 'free_whatsapp' ? 'Enrollment Pathway:' : 'Paystack Transaction Ref:'}
+                  </span>
+                  <span className="font-mono text-gray-600 truncate max-w-[200px] block">
+                    {enrollmentType === 'free_whatsapp' ? 'Free (WhatsApp Verified)' : enrollmentSuccess.reference}
+                  </span>
                 </div>
 
                 <div className="flex justify-between">
@@ -1234,20 +1345,30 @@ export default function App() {
 
               <div className="bg-[#FDF3DC] text-[#C9931A] p-4 rounded-xl border border-[#C9931A]/20 text-xs font-light text-left space-y-1 leading-relaxed">
                 <p className="font-bold text-[#1A1A1A]">Next Critical Steps:</p>
-                <p>1. A confirmation slip was prepared for email dispatch.</p>
-                <p>2. Save your Reg Code: <strong className="text-black font-bold">{enrollmentSuccess.enrollmentId}</strong>.</p>
-                <p>3. Join our dynamic student onboarding portal or reach out instantly via WhatsApp at <strong className="text-black font-bold">{INSTANT_CONTACTS.phone}</strong> with your Reg Code to get added to the active classroom channels.</p>
+                {enrollmentType === 'free_whatsapp' ? (
+                  <>
+                    <p>1. <strong className="text-green-600 font-bold">CRITICAL:</strong> Click the <strong className="text-green-600 font-bold">Send Details to WhatsApp</strong> button below to send your details to <strong className="text-black font-bold">09095203318</strong>.</p>
+                    <p>2. Your slot will be verified immediately upon receipt of your message.</p>
+                    <p>3. Save your Reg Code: <strong className="text-black font-bold">{enrollmentSuccess.enrollmentId}</strong>.</p>
+                  </>
+                ) : (
+                  <>
+                    <p>1. A confirmation slip was prepared for email dispatch.</p>
+                    <p>2. Save your Reg Code: <strong className="text-black font-bold">{enrollmentSuccess.enrollmentId}</strong>.</p>
+                    <p>3. Click the WhatsApp button below to instantly notify us and get added to our active classroom channels.</p>
+                  </>
+                )}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <a 
-                  href={INSTANT_CONTACTS.whatsapp}
+                  href={getEnrollmentWhatsAppUrl()}
                   target="_blank"
                   rel="noreferrer"
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl shadow text-sm transition-colors flex items-center justify-center space-x-2"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>Notify via WhatsApp</span>
+                  <span>Send Details to WhatsApp</span>
                 </a>
                 <button 
                   onClick={resetEnrollment}

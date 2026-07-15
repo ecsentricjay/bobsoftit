@@ -10,8 +10,8 @@ export const BRAND_COLORS = {
 };
 
 export const INSTANT_CONTACTS = {
-  phone: '+234 813 862 3125', // Replaced dummy with realistic Rivers State contact
-  whatsapp: 'https://wa.me/2348138623125?text=Hello%20Bobsoft%2C%20I%20am%20interested%20in%20enrolling%20for%20the%20Industrial%20Training%20Cohort',
+  phone: '+234 909 520 3318', // Updated contact number
+  whatsapp: 'https://wa.me/2349095203318?text=Hello%20Bobsoft%2C%20I%20am%20interested%20in%20enrolling%20for%20the%20Industrial%20Training%20Cohort',
   email: 'info@bobsoftintegrated.com',
   location: 'Old Shopping Complex, Ignatius Ajuru University of Education (IAUE), Rumuolumeni, Port Harcourt, Rivers State, Nigeria.',
   locationShort: 'IAUE Campus, Port Harcourt',
